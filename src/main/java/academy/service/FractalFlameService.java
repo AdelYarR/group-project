@@ -5,189 +5,151 @@ import academy.function.FunctionFactory;
 import academy.models.AffineParameters;
 import academy.models.Color;
 import academy.models.Configuration;
+import academy.models.FractalRenderState;
 import academy.models.Image;
-import academy.models.Pixel;
 import academy.models.Point;
 import academy.models.TransformationFunction;
+import academy.utils.FunctionUtil;
+import academy.utils.GammaCorrector;
+import academy.utils.ImageCreator;
+import academy.utils.PointUtil;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class FractalFlameService {
 
-    private static final double XMAX = 1.777;
-    private static final double XMIN = -1.777;
-    private static final double YMAX = 1;
-    private static final double YMIN = -1;
+    /** Максимальные и минимальные значения точек до нормализации, взятые со статьи. */
+    private static final double MAX_X = 1.777;
+    private static final double MIN_X = -1.777;
+    private static final double MAX_Y = 1;
+    private static final double MIN_Y = -1;
 
-    private Configuration config;
+    /** По статье приложенной в ТЗ, цвета RGB хранятся в виде десятичных чисел в диапазоне [0, 1].
+     * Поэтому, чтобы можно было атомарно (AtomicInteger) хранить данные о цветах,
+     * будем умножать число на SCALE и отрезать значение после точки.
+     * Пример: 0.345687 * 10000 = 3456.87 -> 3456 */
+    private static final int SCALE = 10000;
+
+    private final Configuration config;
+    private final Color[] functionColors;
 
     public FractalFlameService(Configuration config) {
         this.config = config;
+        this.functionColors = generateFunctionColors(config.getSeed(), config.getFunctions().size());
     }
 
-    public Image startAndGet() {
-        Random random = new Random(config.getSeed().hashCode());
+    public Image startAndGet() throws InterruptedException {
+        // Храним атомарные буферы для цветов и счётчика плотности в классе состояния рендера
+        FractalRenderState state = new FractalRenderState(config.getWidth(), config.getHeight());
 
-        int width = config.getSize().getWidth();
-        int height = config.getSize().getHeight();
+        // Обрабатываем все итерации в разных потоках и сохраняем информацию в state
+        executeMultithreading(state);
 
-        Image image = new Image(width, height);
-        Pixel[][] pixels = image.getPixels();
+        // Строим изображение на основе state
+        Image image = ImageCreator.createImageFromState(state, SCALE, config.getWidth(), config.getHeight());
 
-        // Инициализация начальной точки
-        double x = XMIN + (XMAX - XMIN) * random.nextDouble();
-        double y = YMIN + (YMAX - YMIN) * random.nextDouble();
+        GammaCorrector.correct(image, config.getGamma());
+        return image;
+    }
 
-        // Получаем список аффинных преобразований и функций с весами
-        List<TransformationFunction> functions = config.getFunctions();
-        List<AffineParameters> affineParameters = config.getAffineParameters();
-
-        // Массивы для цветов функций
-        Color[] functionColors = new Color[functions.size()];
-        for (int i = 0; i < functions.size(); i++) {
-            double red = random.nextDouble();
-            double green = random.nextDouble();
-            double blue = random.nextDouble();
-            functionColors[i] = new Color(red, green, blue);
+    private void executeMultithreading(FractalRenderState state) throws InterruptedException {
+        List<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < config.getThreadCount(); i++) {
+            Thread thread = new Thread(() -> generateFractalFlame(state));
+            thread.start();
+            threads.add(thread);
         }
 
-        for (int i = 0; i < config.getIterationCount(); i++) {
-            int functionIndex = getRandomFunctionIndex(random, config.getFunctions());
-            TransformationFunction function = functions.get(functionIndex);
-            AffineParameters affine = affineParameters.get(functionIndex);
+        for (Thread thread : threads) {
+            thread.join();
+        }
+    }
+
+    private void generateFractalFlame(FractalRenderState state) {
+        Random random = new Random(config.getSeed().hashCode());
+
+        // Инициализация начальной точки
+        double currentX = MIN_X + (MAX_X - MIN_X) * random.nextDouble();
+        double currentY = MIN_Y + (MAX_Y - MIN_Y) * random.nextDouble();
+
+        while (true) {
+            int currentIteration = state.getAtomicIterationCount().getAndIncrement();
+            if (currentIteration >= config.getIterationCount()) {
+                break;
+            }
+
+            // Получаем рандомно аффинное преобразование и функцию в зависимости от её веса
+            int functionIndex = FunctionUtil.getRandomFunctionIndex(random, config.getFunctions());
+            AffineParameters affine = config.getAffineParameters().get(functionIndex);
+            TransformationFunction function = config.getFunctions().get(functionIndex);
 
             // Применяем аффинное преобразование
-            double affineX = affine.a() * x + affine.b() * y + affine.c();
-            double affineY = affine.d() * x + affine.e() * y + affine.f();
+            double affineX = affine.a() * currentX + affine.b() * currentY + affine.c();
+            double affineY = affine.d() * currentX + affine.e() * currentY + affine.f();
 
-            // Применяем нелинейную вариацию
+            // Применяем нелинейную вариацию функции
             Function variation = FunctionFactory.getFunctionByName(function.name());
             Point newPoint = variation.apply(new Point(affineX, affineY));
 
             // Обновляем текущую точку
-            x = newPoint.x();
-            y = newPoint.y();
+            currentX = newPoint.x();
+            currentY = newPoint.y();
 
-            if (i >= 20) {
-                Point normPoint = normalizePoint(newPoint, width, height);
-                int normX = (int) normPoint.x();
-                int normY = (int) normPoint.y();
-
-                if (normX < width && normY < height) {
-                    Color newColor;
-                    if (pixels[normY][normX] == null) {
-                        newColor = new Color(
-                            functionColors[functionIndex].getRed(),
-                            functionColors[functionIndex].getGreen(),
-                            functionColors[functionIndex].getBlue());
-
-                        pixels[normY][normX] = new Pixel(newColor);
-                    } else {
-                        Color oldColor = pixels[normY][normX].getColor();
-                        newColor = new Color(
-                            (oldColor.getRed() + functionColors[functionIndex].getRed()) / 2,
-                            (oldColor.getGreen() + functionColors[functionIndex].getGreen()) / 2,
-                            (oldColor.getBlue() + functionColors[functionIndex].getBlue()) / 2);
-
-                        pixels[normY][normX].setColor(newColor);
-                    }
-
-                    pixels[normY][normX].increaseCounter();
-                }
+            if (currentIteration >= 20) {
+                processIteration(state, functionIndex, config.getWidth(), config.getHeight(), newPoint);
             }
         }
-
-        gammaCorrect(image, config.getGamma());
-
-        Image coloredImage = colorToRgb(image);
-        coloredImage.printInfo();
-        return coloredImage;
     }
 
-    private int getRandomFunctionIndex(Random random, List<TransformationFunction> functions) {
-        double allWeights = functions.stream()
-            .mapToDouble(TransformationFunction::weight)
-            .sum();
+    private void processIteration(FractalRenderState state, int functionIndex, int width, int height, Point newPoint) {
+        // Переводим координаты точки из десятичных значений диапазона [0, 1] в целые значения разрешения изображения
+        Point normPoint = PointUtil.normalizePoint(newPoint, MAX_X, MIN_X, MAX_Y, MIN_Y, width, height);
+        int normX = (int) normPoint.x();
+        int normY = (int) normPoint.y();
 
-        double randomValue = random.nextDouble() * allWeights;
+        if (normX < width && normY < height) {
+            // Считаем индекс для AtomicIntegerArray переменных
+            int index = normY * width + normX;
 
-        double cumulative = 0;
-        for (int i = 0; i < functions.size(); i++) {
-            cumulative += functions.get(i).weight();
-            if (randomValue < cumulative) {
-                return i;
+            int red = (int) (functionColors[functionIndex].getRed() * SCALE);
+            int green = (int) (functionColors[functionIndex].getGreen() * SCALE );
+            int blue = (int) (functionColors[functionIndex].getBlue() * SCALE);
+
+            // Если в точку ещё не попадали, то устанавливаем изначально сгенерированный цвет
+            if (state.getCounterArray().get(index) == 0) {
+
+                state.getRedColorArray().set(index, red);
+                state.getGreenColorArray().set(index, green);
+                state.getBlueColorArray().set(index, blue);
             }
-        }
+            // Если в точку уже попадали, то усредняем новый цвет с предыдущим
+            else {
+                int oldRed = state.getRedColorArray().get(index);
+                int oldGreen = state.getGreenColorArray().get(index);
+                int oldBlue = state.getBlueColorArray().get(index);
 
-        return functions.size() - 1;
+                state.getRedColorArray().set(index, (oldRed + red) / 2);
+                state.getGreenColorArray().set(index, (oldGreen + green) / 2);
+                state.getBlueColorArray().set(index, (oldBlue + blue) / 2);
+            }
+
+            state.getCounterArray().incrementAndGet(index);
+        }
     }
 
-    private Point normalizePoint(Point point, int width, int height) {
-        //В массиве отчёт начинается с 0, поэтому отнимаем единицу у ширины и высоты
-        int w = width - 1;
-        int h = height - 1;
+    private Color[] generateFunctionColors(Double seed, int functionSize) {
+        Random colorRandom = new Random(seed.hashCode());
 
-        double oldX = point.x();
-        double oldY = point.y();
+        Color[] colors = new Color[functionSize];
+        for (int i = 0; i < functionSize; i++) {
+            double red = colorRandom.nextDouble();
+            double green = colorRandom.nextDouble();
+            double blue = colorRandom.nextDouble();
 
-        double xRatio = (XMAX - oldX) / (XMAX - XMIN);
-        int x1 = width - (int) Math.floor(xRatio * width);
-
-        double yRatio = (YMAX - oldY) / (YMAX - YMIN);
-        int y1 = height - (int) Math.floor(yRatio * height);
-
-        x1 = Math.max(0, Math.min(w, x1));
-        y1 = Math.max(0, Math.min(h, y1));
-
-        return new Point(x1, y1);
-    }
-
-    private Image colorToRgb(Image image) {
-        Pixel[][] pixels = image.getPixels();
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                Pixel pixel = pixels[y][x];
-                if (pixel != null) {
-                    Color oldColor = pixel.getColor();
-                    int r = (int) (oldColor.getRed() * 255);
-                    int g = (int) (oldColor.getGreen() * 255);
-                    int b = (int) (oldColor.getBlue() * 255);
-                    pixel.setColor(new Color(r, g, b));
-                }
-            }
-        }
-        return image;
-    }
-
-    private void gammaCorrect(Image image, double gamma) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-        Pixel[][] pixels = image.getPixels();
-        double max = 0.0;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (pixels[y][x] != null) {
-                    pixels[y][x].setNormal(Math.log10(pixels[y][x].getCounter()));
-                    if (pixels[y][x].getNormal() > max) {
-                        max = pixels[y][x].getNormal();
-                    }
-                }
-            }
+            colors[i] = new Color(red, green, blue);
         }
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (pixels[y][x] != null) {
-                    pixels[y][x].setNormal(pixels[y][x].getNormal() / max);
-
-                    Color color = pixels[y][x].getColor();
-                    double gammaCorrection = Math.pow(pixels[y][x].getNormal(), (1.0 / gamma));
-                    color.setRed(color.getRed() * gammaCorrection);
-                    color.setGreen(color.getGreen() * gammaCorrection);
-                    color.setBlue(color.getBlue() * gammaCorrection);
-                }
-            }
-        }
+        return colors;
     }
 }

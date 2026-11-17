@@ -75,17 +75,8 @@ public class Application implements Runnable {
                     .build();
             }
 
-            LOGGER.info("""
-                Запуск программы со следующими параметрами:
-                width: {}
-                height: {}
-                seed: {}
-                iteration count: {}
-                output path: {}
-                threads: {}
-                affine parameters: {}
-                functions: {}
-                gamma: {}""",
+            LOGGER.info("Запуск программы со следующими параметрами: width: {}, height: {}, seed: {}, " +
+                    "iteration count: {}, output path: {}, threads: {}, affine parameters: {}, functions: {}, gamma: {}",
                 config.getSize().getWidth(), config.getSize().getHeight(), config.getSeed(), config.getIterationCount(),
                 config.getOutputPath(), config.getThreadCount(), config.getAffineParameters(), config.getFunctions(),
                 config.getGamma());
@@ -94,6 +85,7 @@ public class Application implements Runnable {
             Image image = service.startAndGet();
 
             ImageWriter.writeToPng(image, config);
+            LOGGER.info("Изображение сохранено: {}", config.getOutputPath());
         } catch (Exception e) {
             throw new CommandLine.ParameterException(new CommandLine(this), e.getMessage());
         }

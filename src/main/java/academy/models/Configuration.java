@@ -180,6 +180,14 @@ public class Configuration {
         return size;
     }
 
+    public int getWidth() {
+        return size.getWidth();
+    }
+
+    public int getHeight() {
+        return size.getHeight();
+    }
+
     public Double getSeed() {
         return seed;
     }

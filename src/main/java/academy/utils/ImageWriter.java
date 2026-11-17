@@ -1,15 +1,20 @@
 package academy.utils;
 
+import academy.Application;
 import academy.models.Color;
 import academy.models.Configuration;
 import academy.models.Image;
 import academy.models.Pixel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 public class ImageWriter {
+
+    private ImageWriter() {}
 
     public static void writeToPng(Image image, Configuration config) {
         int width = config.getSize().getWidth();
@@ -37,7 +42,6 @@ public class ImageWriter {
         try {
             File outputFile = new File(config.getOutputPath());
             ImageIO.write(bufferedImage, "png", outputFile);
-            System.out.println("Изображение сохранено: " + outputFile.getAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException("Ошибка при сохранении изображения", e);
         }
