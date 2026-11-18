@@ -2,54 +2,68 @@ package academy.service;
 
 import academy.function.Function;
 import academy.function.FunctionFactory;
-import academy.models.AffineParameters;
-import academy.models.Color;
-import academy.models.Configuration;
+import academy.logger.ProgressLogger;
 import academy.models.FractalRenderState;
-import academy.models.Image;
-import academy.models.Point;
-import academy.models.TransformationFunction;
+import academy.models.config.AffineParameters;
+import academy.models.config.Configuration;
+import academy.models.config.TransformationFunction;
+import academy.models.image.Color;
+import academy.models.image.Image;
+import academy.models.image.Point;
 import academy.utils.FunctionUtil;
-import academy.utils.GammaCorrector;
-import academy.utils.ImageCreator;
 import academy.utils.PointUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FractalFlameService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FractalFlameService.class);
+
     /** Максимальные и минимальные значения точек до нормализации, взятые со статьи. */
     private static final double MAX_X = 1.777;
+
     private static final double MIN_X = -1.777;
     private static final double MAX_Y = 1;
     private static final double MIN_Y = -1;
 
-    /** По статье приложенной в ТЗ, цвета RGB хранятся в виде десятичных чисел в диапазоне [0, 1].
-     * Поэтому, чтобы можно было атомарно (AtomicInteger) хранить данные о цветах,
-     * будем умножать число на SCALE и отрезать значение после точки.
-     * Пример: 0.345687 * 10000 = 3456.87 -> 3456 */
+    /**
+     * По статье приложенной в ТЗ, цвета RGB хранятся в виде десятичных чисел в диапазоне [0, 1]. Поэтому, чтобы можно
+     * было атомарно (AtomicInteger) хранить данные о цветах, будем умножать число на SCALE и отрезать значение после
+     * точки. Пример: 0.345687 * 10000 = 3456.87 -> 3456
+     */
     private static final int SCALE = 10000;
 
     private final Configuration config;
     private final Color[] functionColors;
+    private final Random random;
 
     public FractalFlameService(Configuration config) {
         this.config = config;
-        this.functionColors = generateFunctionColors(config.getSeed(), config.getFunctions().size());
+        this.random = new Random(config.getSeed().hashCode());
+        this.functionColors = generateFunctionColors(config.getFunctions().size());
     }
 
     public Image startAndGet() throws InterruptedException {
         // Храним атомарные буферы для цветов и счётчика плотности в классе состояния рендера
         FractalRenderState state = new FractalRenderState(config.getWidth(), config.getHeight());
 
+        // Логирование процента генерации фрактального пламени
+        Thread progressLogger = new Thread(new ProgressLogger(state, config.getIterationCount()));
+        progressLogger.start();
+
         // Обрабатываем все итерации в разных потоках и сохраняем информацию в state
         executeMultithreading(state);
+        LOGGER.info("Потоки завершили генерацию фрактального пламени.");
 
         // Строим изображение на основе state
         Image image = ImageCreator.createImageFromState(state, SCALE, config.getWidth(), config.getHeight());
+        LOGGER.info("Изображение фрактального пламени успешно создано.");
 
         GammaCorrector.correct(image, config.getGamma());
+        LOGGER.info("Гамма-коррекция изображения успешно добавлена.");
         return image;
     }
 
@@ -59,6 +73,7 @@ public class FractalFlameService {
             Thread thread = new Thread(() -> generateFractalFlame(state));
             thread.start();
             threads.add(thread);
+            LOGGER.info("Запуск потока {} для генерация фрактального пламени.", thread.getName());
         }
 
         for (Thread thread : threads) {
@@ -67,8 +82,6 @@ public class FractalFlameService {
     }
 
     private void generateFractalFlame(FractalRenderState state) {
-        Random random = new Random(config.getSeed().hashCode());
-
         // Инициализация начальной точки
         double currentX = MIN_X + (MAX_X - MIN_X) * random.nextDouble();
         double currentY = MIN_Y + (MAX_Y - MIN_Y) * random.nextDouble();
@@ -97,8 +110,26 @@ public class FractalFlameService {
             currentY = newPoint.y();
 
             if (currentIteration >= 20) {
-                processIteration(state, functionIndex, config.getWidth(), config.getHeight(), newPoint);
+                applySymmetry(state, functionIndex, config.getWidth(), config.getHeight(), newPoint);
             }
+        }
+    }
+
+    private void applySymmetry(FractalRenderState state, int functionIndex, int width, int height, Point newPoint) {
+        int symmetryLevel = config.getSymmetryLevel();
+
+        if (symmetryLevel == 1) {
+            processIteration(state, functionIndex, width, height, newPoint);
+            return;
+        }
+
+        // Для симметрии генерируем n-1 повернутых копий точки
+        double angle = 360.0 / symmetryLevel;
+
+        for (int i = 0; i < symmetryLevel; i++) {
+            double rotationAngle = i * angle;
+            Point rotatedPoint = PointUtil.rotatePoint(newPoint, rotationAngle);
+            processIteration(state, functionIndex, width, height, rotatedPoint);
         }
     }
 
@@ -113,7 +144,7 @@ public class FractalFlameService {
             int index = normY * width + normX;
 
             int red = (int) (functionColors[functionIndex].getRed() * SCALE);
-            int green = (int) (functionColors[functionIndex].getGreen() * SCALE );
+            int green = (int) (functionColors[functionIndex].getGreen() * SCALE);
             int blue = (int) (functionColors[functionIndex].getBlue() * SCALE);
 
             // Если в точку ещё не попадали, то устанавливаем изначально сгенерированный цвет
@@ -138,14 +169,12 @@ public class FractalFlameService {
         }
     }
 
-    private Color[] generateFunctionColors(Double seed, int functionSize) {
-        Random colorRandom = new Random(seed.hashCode());
-
+    private Color[] generateFunctionColors(int functionSize) {
         Color[] colors = new Color[functionSize];
         for (int i = 0; i < functionSize; i++) {
-            double red = colorRandom.nextDouble();
-            double green = colorRandom.nextDouble();
-            double blue = colorRandom.nextDouble();
+            double red = random.nextDouble();
+            double green = random.nextDouble();
+            double blue = random.nextDouble();
 
             colors[i] = new Color(red, green, blue);
         }

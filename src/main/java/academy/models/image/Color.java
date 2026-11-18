@@ -1,6 +1,7 @@
-package academy.models;
+package academy.models.image;
 
 public class Color {
+
     private double red;
     private double green;
     private double blue;

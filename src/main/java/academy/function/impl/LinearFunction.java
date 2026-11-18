@@ -1,6 +1,7 @@
-package academy.function;
+package academy.function.impl;
 
-import academy.models.Point;
+import academy.function.Function;
+import academy.models.image.Point;
 
 public class LinearFunction implements Function {
 

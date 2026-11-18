@@ -1,38 +1,28 @@
 {
     "size": {
-        "width": 2560,
-        "height": 1440
+        "width": 1920,
+        "height": 1080
     },
-    "iteration_count": 100000000,
-    "output_path": "result4with8threads.png",
-    "threads": 2,
-    "seed": "1.6342",
+    "iteration_count": 20000000,
+    "output_path": "flame.png",
+    "threads": 4,
+    "seed": 42.12345,
+    "gamma_correction": 2.2,
+    "symmetry_level": 3,
     "functions": [
         {
-            "name": "sinusoidal",
-            "weight": 0.2
-        },
-        {
-            "name": "swirl",
-            "weight": 0.8
+            "name": "spherical",
+            "weight": 1.0
         }
     ],
     "affine_params": [
         {
-            "a": 0.5,
-            "b": 0.0,
+            "a": 0.8,
+            "b": -0.1,
             "c": 0.0,
-            "d": 0.0,
-            "e": 0.5,
-            "f": 0.5
-        },
-        {
-            "a": -0.5,
-            "b": 0.0,
-            "c": 0.5,
-            "d": 0.0,
-            "e": -0.5,
-            "f": 0.5
+            "d": 0.1,
+            "e": 0.7,
+            "f": 0.0
         }
     ]
 }

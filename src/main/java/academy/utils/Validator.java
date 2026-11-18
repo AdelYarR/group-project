@@ -1,8 +1,8 @@
 package academy.utils;
 
 import academy.exceptions.ValidationException;
-import academy.models.AffineParameters;
-import academy.models.TransformationFunction;
+import academy.models.config.AffineParameters;
+import academy.models.config.TransformationFunction;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -17,13 +17,13 @@ public class Validator {
 
     public static void validatePositive(int n) {
         if (n <= 0) {
-            throw new ValidationException("");
+            throw new ValidationException("parameter must be positive");
         }
     }
 
     public static void validatePositive(double n) {
         if (n <= 0) {
-            throw new ValidationException("");
+            throw new ValidationException("parameter must be positive");
         }
     }
 
@@ -31,14 +31,14 @@ public class Validator {
         Path path = Path.of(pathString);
 
         if (Files.exists(path)) {
-            throw new ValidationException("");
+            throw new ValidationException("output path already exists");
         }
     }
 
     public static List<AffineParameters> validateAndGetAffineParams(String affineParametersString) {
         List<AffineParameters> affineParametersList = new ArrayList<>();
 
-        String regex = "^<([\\d.]+)>,<([\\d.]+)>,<([\\d.]+)>,<([\\d.]+)>,<([\\d.]+)>,<([\\d.]+)>$";
+        String regex = "^<([\\d.-]+)>,<([\\d.-]+)>,<([\\d.-]+)>,<([\\d.-]+)>,<([\\d.-]+)>,<([\\d.-]+)>$";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher;
 
@@ -47,17 +47,16 @@ public class Validator {
             matcher = pattern.matcher(part);
 
             if (!matcher.matches()) {
-                throw new ValidationException("");
+                throw new ValidationException("parameters passed in invalid format");
             }
 
             AffineParameters affineParameters = new AffineParameters(
-                Double.parseDouble(matcher.group(1)),
-                Double.parseDouble(matcher.group(2)),
-                Double.parseDouble(matcher.group(3)),
-                Double.parseDouble(matcher.group(4)),
-                Double.parseDouble(matcher.group(5)),
-                Double.parseDouble(matcher.group(6))
-            );
+                    Double.parseDouble(matcher.group(1)),
+                    Double.parseDouble(matcher.group(2)),
+                    Double.parseDouble(matcher.group(3)),
+                    Double.parseDouble(matcher.group(4)),
+                    Double.parseDouble(matcher.group(5)),
+                    Double.parseDouble(matcher.group(6)));
 
             affineParametersList.add(affineParameters);
         }
@@ -77,13 +76,11 @@ public class Validator {
             matcher = pattern.matcher(part);
 
             if (!matcher.matches()) {
-                throw new ValidationException("");
+                throw new ValidationException("parameters passed in invalid format");
             }
 
-            TransformationFunction function = new TransformationFunction(
-                matcher.group(1),
-                Double.parseDouble(matcher.group(2))
-            );
+            TransformationFunction function =
+                    new TransformationFunction(matcher.group(1), Double.parseDouble(matcher.group(2)));
 
             functions.add(function);
         }

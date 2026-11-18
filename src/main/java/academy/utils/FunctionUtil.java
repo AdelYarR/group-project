@@ -1,6 +1,6 @@
 package academy.utils;
 
-import academy.models.TransformationFunction;
+import academy.models.config.TransformationFunction;
 import java.util.List;
 import java.util.Random;
 
@@ -9,9 +9,12 @@ public class FunctionUtil {
     private FunctionUtil() {}
 
     public static int getRandomFunctionIndex(Random random, List<TransformationFunction> functions) {
-        double allWeights = functions.stream()
-            .mapToDouble(TransformationFunction::weight)
-            .sum();
+        if (functions.isEmpty()) {
+            throw new IllegalArgumentException("list is empty");
+        }
+
+        double allWeights =
+                functions.stream().mapToDouble(TransformationFunction::weight).sum();
 
         double randomValue = random.nextDouble() * allWeights;
 

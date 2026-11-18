@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class FractalRenderState {
+
     private AtomicInteger atomicIterationCount;
     private AtomicIntegerArray redColorArray;
     private AtomicIntegerArray greenColorArray;

@@ -1,16 +1,14 @@
 package academy.utils;
 
-import academy.Application;
-import academy.models.Color;
-import academy.models.Configuration;
-import academy.models.Image;
-import academy.models.Pixel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import javax.imageio.ImageIO;
+import academy.models.config.Configuration;
+import academy.models.image.Color;
+import academy.models.image.Image;
+import academy.models.image.Pixel;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import javax.imageio.ImageIO;
 
 public class ImageWriter {
 
@@ -40,10 +38,10 @@ public class ImageWriter {
         }
 
         try {
-            File outputFile = new File(config.getOutputPath());
+            File outputFile = Path.of(config.getOutputPath()).toFile();
             ImageIO.write(bufferedImage, "png", outputFile);
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при сохранении изображения", e);
+            throw new RuntimeException("failed to save image", e);
         }
     }
 }

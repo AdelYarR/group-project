@@ -1,9 +1,9 @@
-package academy.utils;
+package academy.service;
 
-import academy.models.Color;
 import academy.models.FractalRenderState;
-import academy.models.Image;
-import academy.models.Pixel;
+import academy.models.image.Color;
+import academy.models.image.Image;
+import academy.models.image.Pixel;
 
 public class ImageCreator {
 
@@ -20,9 +20,9 @@ public class ImageCreator {
                     int oldGreen = state.getGreenColorArray().get(index);
                     int oldBlue = state.getBlueColorArray().get(index);
 
-                    int r = (int) ((oldRed / scale) * 255);
-                    int g = (int) ((oldGreen / scale) * 255);
-                    int b = (int) ((oldBlue / scale) * 255);
+                    int r = (int) (oldRed / scale * 255);
+                    int g = (int) (oldGreen / scale * 255);
+                    int b = (int) (oldBlue / scale * 255);
 
                     Pixel pixel = new Pixel(new Color(r, g, b));
                     pixel.setCounter(state.getCounterArray().get(index));

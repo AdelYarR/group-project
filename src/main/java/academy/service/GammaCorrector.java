@@ -1,9 +1,13 @@
-package academy.utils;
+package academy.service;
 
-import academy.models.Color;
-import academy.models.Image;
-import academy.models.Pixel;
+import academy.models.image.Color;
+import academy.models.image.Image;
+import academy.models.image.Pixel;
 
+/**
+ * Класс, предоставляющий методы для гамма-коррекции изображения. Процесс состоит из двух этапов: Логарифмическая
+ * нормализация значений счётчиков пикселей. Применение функции гамма-коррекции к цветам пикселей.
+ */
 public class GammaCorrector {
 
     private GammaCorrector() {}
@@ -41,7 +45,7 @@ public class GammaCorrector {
                     pixels[y][x].setNormal(pixels[y][x].getNormal() / max);
 
                     Color color = pixels[y][x].getColor();
-                    double gammaCorrection = Math.pow(pixels[y][x].getNormal(), (1.0 / gamma));
+                    double gammaCorrection = Math.pow(pixels[y][x].getNormal(), 1.0 / gamma);
                     color.setRed(color.getRed() * gammaCorrection);
                     color.setGreen(color.getGreen() * gammaCorrection);
                     color.setBlue(color.getBlue() * gammaCorrection);
