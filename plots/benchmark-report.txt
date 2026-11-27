@@ -1,0 +1,222 @@
+Benchmark report
+Generated: 2026-11-27 15:52:46
+CPU cores: 12
+JVM: 26.0.2.1
+Max heap: 4070 MB
+Warmup runs: 3, Measure runs: 7
+
+RESULTS
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+fixed-size threads=1         1        1920x1080    spherical  10000000 848,2      980,7      890,4      882,9      1,00       1,00      
+fixed-size threads=2         2        1920x1080    spherical  10000000 561,2      603,7      579,6      579,7      1,52       0,76      
+fixed-size threads=4         4        1920x1080    spherical  10000000 289,5      338,5      304,7      300,9      2,93       0,73      
+fixed-size threads=8         8        1920x1080    spherical  10000000 287,4      344,4      306,7      303,9      2,91       0,36      
+fixed-size threads=16        16       1920x1080    spherical  10000000 369,8      449,2      402,2      401,8      2,20       0,14      
+size=640x360 threads=1       1        640x360      spherical  10000000 765,3      822,1      792,1      783,7      1,00       1,00      
+size=640x360 threads=2       2        640x360      spherical  10000000 459,7      506,5      479,9      469,7      1,67       0,83      
+size=640x360 threads=4       4        640x360      spherical  10000000 253,1      327,3      283,9      286,6      2,73       0,68      
+size=640x360 threads=8       8        640x360      spherical  10000000 263,1      322,6      285,5      280,4      2,80       0,35      
+size=640x360 threads=16      16       640x360      spherical  10000000 296,3      323,0      307,3      307,1      2,55       0,16      
+size=1280x720 threads=1      1        1280x720     spherical  10000000 846,6      904,2      873,3      868,2      1,00       1,00      
+size=1280x720 threads=2      2        1280x720     spherical  10000000 472,3      544,8      502,8      495,4      1,75       0,88      
+size=1280x720 threads=4      4        1280x720     spherical  10000000 268,2      309,4      288,4      285,3      3,04       0,76      
+size=1280x720 threads=8      8        1280x720     spherical  10000000 269,2      326,5      295,4      296,0      2,93       0,37      
+size=1280x720 threads=16     16       1280x720     spherical  10000000 288,9      363,3      326,9      327,0      2,66       0,17      
+size=1920x1080 threads=1     1        1920x1080    spherical  10000000 843,4      922,2      889,7      902,9      1,00       1,00      
+size=1920x1080 threads=2     2        1920x1080    spherical  10000000 521,5      583,8      552,7      547,9      1,61       0,81      
+size=1920x1080 threads=4     4        1920x1080    spherical  10000000 287,7      328,2      306,1      302,6      2,92       0,73      
+size=1920x1080 threads=8     8        1920x1080    spherical  10000000 329,6      501,3      400,5      395,3      2,23       0,28      
+size=1920x1080 threads=16    16       1920x1080    spherical  10000000 505,8      620,1      554,6      541,9      1,63       0,10      
+size=2560x1440 threads=1     1        2560x1440    spherical  10000000 1099,8     1442,6     1292,4     1292,6     1,00       1,00      
+size=2560x1440 threads=2     2        2560x1440    spherical  10000000 696,9      963,4      833,2      831,4      1,55       0,78      
+size=2560x1440 threads=4     4        2560x1440    spherical  10000000 549,4      679,4      585,9      573,1      2,26       0,56      
+size=2560x1440 threads=8     8        2560x1440    spherical  10000000 529,0      646,2      572,5      556,4      2,32       0,29      
+size=2560x1440 threads=16    16       2560x1440    spherical  10000000 625,7      677,5      656,4      665,3      1,94       0,12      
+func=linear threads=1        1        1920x1080    linear     10000000 767,7      976,7      819,9      794,7      1,00       1,00      
+func=linear threads=2        2        1920x1080    linear     10000000 480,3      575,3      524,5      521,9      1,52       0,76      
+func=linear threads=4        4        1920x1080    linear     10000000 256,4      327,0      282,1      272,8      2,91       0,73      
+func=linear threads=8        8        1920x1080    linear     10000000 251,2      305,8      267,4      258,2      3,08       0,38      
+func=linear threads=16       16       1920x1080    linear     10000000 284,8      402,5      322,8      318,7      2,49       0,16      
+func=sinusoidal threads=1    1        1920x1080    sinusoidal 10000000 839,8      914,7      886,0      878,8      1,00       1,00      
+func=sinusoidal threads=2    2        1920x1080    sinusoidal 10000000 585,2      651,2      618,5      609,6      1,44       0,72      
+func=sinusoidal threads=4    4        1920x1080    sinusoidal 10000000 379,4      448,8      418,8      413,2      2,13       0,53      
+func=sinusoidal threads=8    8        1920x1080    sinusoidal 10000000 330,3      455,5      367,5      358,9      2,45       0,31      
+func=sinusoidal threads=16   16       1920x1080    sinusoidal 10000000 355,1      395,1      366,1      361,5      2,43       0,15      
+func=spherical threads=1     1        1920x1080    spherical  10000000 955,2      1054,7     989,7      983,0      1,00       1,00      
+func=spherical threads=2     2        1920x1080    spherical  10000000 601,7      907,3      794,0      799,3      1,10       0,55      
+func=spherical threads=4     4        1920x1080    spherical  10000000 653,8      686,9      667,5      660,6      1,34       0,33      
+func=spherical threads=8     8        1920x1080    spherical  10000000 503,3      591,5      545,0      555,9      1,59       0,20      
+func=spherical threads=16    16       1920x1080    spherical  10000000 662,0      736,9      712,0      718,2      1,23       0,08      
+func=swirl threads=1         1        1920x1080    swirl      10000000 764,5      858,3      806,4      788,6      1,00       1,00      
+func=swirl threads=2         2        1920x1080    swirl      10000000 524,0      578,4      552,3      554,4      1,42       0,71      
+func=swirl threads=4         4        1920x1080    swirl      10000000 369,6      421,2      391,6      387,0      2,04       0,51      
+func=swirl threads=8         8        1920x1080    swirl      10000000 367,1      417,7      386,5      378,8      2,08       0,26      
+func=swirl threads=16        16       1920x1080    swirl      10000000 377,0      420,7      405,0      414,3      1,90       0,12      
+func=horseshoe threads=1     1        1920x1080    horseshoe  10000000 712,7      781,0      762,9      779,6      1,00       1,00      
+func=horseshoe threads=2     2        1920x1080    horseshoe  10000000 510,4      605,2      552,0      535,4      1,46       0,73      
+func=horseshoe threads=4     4        1920x1080    horseshoe  10000000 353,5      428,7      375,8      365,1      2,14       0,53      
+func=horseshoe threads=8     8        1920x1080    horseshoe  10000000 364,2      391,3      378,7      376,8      2,07       0,26      
+func=horseshoe threads=16    16       1920x1080    horseshoe  10000000 359,6      435,8      390,4      389,6      2,00       0,13      
+iter=1000000 threads=1       1        1920x1080    spherical  1000000  115,1      161,8      140,7      139,3      1,00       1,00      
+iter=1000000 threads=2       2        1920x1080    spherical  1000000  70,3       95,9       82,5       84,9       1,64       0,82      
+iter=1000000 threads=4       4        1920x1080    spherical  1000000  57,8       66,8       62,7       63,6       2,19       0,55      
+iter=1000000 threads=8       8        1920x1080    spherical  1000000  66,5       98,1       81,5       83,0       1,68       0,21      
+iter=1000000 threads=16      16       1920x1080    spherical  1000000  96,9       123,4      109,7      111,0      1,26       0,08      
+iter=5000000 threads=1       1        1920x1080    spherical  5000000  484,3      586,7      526,6      518,2      1,00       1,00      
+iter=5000000 threads=2       2        1920x1080    spherical  5000000  274,2      342,4      310,9      319,1      1,62       0,81      
+iter=5000000 threads=4       4        1920x1080    spherical  5000000  193,2      239,1      209,7      208,8      2,48       0,62      
+iter=5000000 threads=8       8        1920x1080    spherical  5000000  220,0      249,5      238,3      242,7      2,13       0,27      
+iter=5000000 threads=16      16       1920x1080    spherical  5000000  338,1      425,0      369,9      369,8      1,40       0,09      
+iter=10000000 threads=1      1        1920x1080    spherical  10000000 1112,5     1202,4     1144,8     1139,2     1,00       1,00      
+iter=10000000 threads=2      2        1920x1080    spherical  10000000 761,8      923,3      853,3      866,9      1,02       0,51      
+iter=10000000 threads=4      4        1920x1080    spherical  10000000 398,0      695,2      577,0      647,6      1,36       0,34      
+iter=10000000 threads=8      8        1920x1080    spherical  10000000 371,0      424,4      393,7      392,4      2,25       0,28      
+iter=10000000 threads=16     16       1920x1080    spherical  10000000 501,6      562,9      532,5      533,3      1,66       0,10      
+iter=25000000 threads=1      1        1920x1080    spherical  25000000 2283,2     2725,2     2458,1     2323,0     1,00       1,00      
+iter=25000000 threads=2      2        1920x1080    spherical  25000000 1366,0     1610,9     1467,4     1469,0     1,58       0,79      
+iter=25000000 threads=4      4        1920x1080    spherical  25000000 760,0      883,5      830,0      840,5      2,76       0,69      
+iter=25000000 threads=8      8        1920x1080    spherical  25000000 809,9      955,2      870,7      878,4      2,64       0,33      
+iter=25000000 threads=16     16       1920x1080    spherical  25000000 999,0      1406,8     1110,6     1045,9     2,22       0,14      
+iter=50000000 threads=1      1        1920x1080    spherical  50000000 4414,2     5449,3     4885,3     5024,7     1,00       1,00      
+iter=50000000 threads=2      2        1920x1080    spherical  50000000 2360,7     2457,7     2404,2     2403,4     2,09       1,05      
+iter=50000000 threads=4      4        1920x1080    spherical  50000000 1421,9     1541,2     1476,5     1452,9     3,46       0,86      
+iter=50000000 threads=8      8        1920x1080    spherical  50000000 1500,1     2185,3     1782,3     1695,5     2,96       0,37      
+iter=50000000 threads=16     16       1920x1080    spherical  50000000 1749,8     1966,8     1844,9     1791,2     2,81       0,18      
+
+Experiment #1: fixed size (1920x1080, spherical, iter=10_000_000)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+fixed-size threads=1         1        1920x1080    spherical  10000000 848,2      980,7      890,4      882,9      1,00       1,00      
+fixed-size threads=2         2        1920x1080    spherical  10000000 561,2      603,7      579,6      579,7      1,52       0,76      
+fixed-size threads=4         4        1920x1080    spherical  10000000 289,5      338,5      304,7      300,9      2,93       0,73      
+fixed-size threads=8         8        1920x1080    spherical  10000000 287,4      344,4      306,7      303,9      2,91       0,36      
+fixed-size threads=16        16       1920x1080    spherical  10000000 369,8      449,2      402,2      401,8      2,20       0,14      
+
+Experiment #2: size=640x360
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+size=640x360 threads=1       1        640x360      spherical  10000000 765,3      822,1      792,1      783,7      1,00       1,00      
+size=640x360 threads=2       2        640x360      spherical  10000000 459,7      506,5      479,9      469,7      1,67       0,83      
+size=640x360 threads=4       4        640x360      spherical  10000000 253,1      327,3      283,9      286,6      2,73       0,68      
+size=640x360 threads=8       8        640x360      spherical  10000000 263,1      322,6      285,5      280,4      2,80       0,35      
+size=640x360 threads=16      16       640x360      spherical  10000000 296,3      323,0      307,3      307,1      2,55       0,16      
+
+Experiment #2: size=1280x720
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+size=1280x720 threads=1      1        1280x720     spherical  10000000 846,6      904,2      873,3      868,2      1,00       1,00      
+size=1280x720 threads=2      2        1280x720     spherical  10000000 472,3      544,8      502,8      495,4      1,75       0,88      
+size=1280x720 threads=4      4        1280x720     spherical  10000000 268,2      309,4      288,4      285,3      3,04       0,76      
+size=1280x720 threads=8      8        1280x720     spherical  10000000 269,2      326,5      295,4      296,0      2,93       0,37      
+size=1280x720 threads=16     16       1280x720     spherical  10000000 288,9      363,3      326,9      327,0      2,66       0,17      
+
+Experiment #2: size=1920x1080
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+size=1920x1080 threads=1     1        1920x1080    spherical  10000000 843,4      922,2      889,7      902,9      1,00       1,00      
+size=1920x1080 threads=2     2        1920x1080    spherical  10000000 521,5      583,8      552,7      547,9      1,61       0,81      
+size=1920x1080 threads=4     4        1920x1080    spherical  10000000 287,7      328,2      306,1      302,6      2,92       0,73      
+size=1920x1080 threads=8     8        1920x1080    spherical  10000000 329,6      501,3      400,5      395,3      2,23       0,28      
+size=1920x1080 threads=16    16       1920x1080    spherical  10000000 505,8      620,1      554,6      541,9      1,63       0,10      
+
+Experiment #2: size=2560x1440
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+size=2560x1440 threads=1     1        2560x1440    spherical  10000000 1099,8     1442,6     1292,4     1292,6     1,00       1,00      
+size=2560x1440 threads=2     2        2560x1440    spherical  10000000 696,9      963,4      833,2      831,4      1,55       0,78      
+size=2560x1440 threads=4     4        2560x1440    spherical  10000000 549,4      679,4      585,9      573,1      2,26       0,56      
+size=2560x1440 threads=8     8        2560x1440    spherical  10000000 529,0      646,2      572,5      556,4      2,32       0,29      
+size=2560x1440 threads=16    16       2560x1440    spherical  10000000 625,7      677,5      656,4      665,3      1,94       0,12      
+
+Experiment #3: func=linear (1920x1080, iter=10_000_000)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+func=linear threads=1        1        1920x1080    linear     10000000 767,7      976,7      819,9      794,7      1,00       1,00      
+func=linear threads=2        2        1920x1080    linear     10000000 480,3      575,3      524,5      521,9      1,52       0,76      
+func=linear threads=4        4        1920x1080    linear     10000000 256,4      327,0      282,1      272,8      2,91       0,73      
+func=linear threads=8        8        1920x1080    linear     10000000 251,2      305,8      267,4      258,2      3,08       0,38      
+func=linear threads=16       16       1920x1080    linear     10000000 284,8      402,5      322,8      318,7      2,49       0,16      
+
+Experiment #3: func=sinusoidal (1920x1080, iter=10_000_000)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+func=sinusoidal threads=1    1        1920x1080    sinusoidal 10000000 839,8      914,7      886,0      878,8      1,00       1,00      
+func=sinusoidal threads=2    2        1920x1080    sinusoidal 10000000 585,2      651,2      618,5      609,6      1,44       0,72      
+func=sinusoidal threads=4    4        1920x1080    sinusoidal 10000000 379,4      448,8      418,8      413,2      2,13       0,53      
+func=sinusoidal threads=8    8        1920x1080    sinusoidal 10000000 330,3      455,5      367,5      358,9      2,45       0,31      
+func=sinusoidal threads=16   16       1920x1080    sinusoidal 10000000 355,1      395,1      366,1      361,5      2,43       0,15      
+
+Experiment #3: func=spherical (1920x1080, iter=10_000_000)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+func=spherical threads=1     1        1920x1080    spherical  10000000 955,2      1054,7     989,7      983,0      1,00       1,00      
+func=spherical threads=2     2        1920x1080    spherical  10000000 601,7      907,3      794,0      799,3      1,10       0,55      
+func=spherical threads=4     4        1920x1080    spherical  10000000 653,8      686,9      667,5      660,6      1,34       0,33      
+func=spherical threads=8     8        1920x1080    spherical  10000000 503,3      591,5      545,0      555,9      1,59       0,20      
+func=spherical threads=16    16       1920x1080    spherical  10000000 662,0      736,9      712,0      718,2      1,23       0,08      
+
+Experiment #3: func=swirl (1920x1080, iter=10_000_000)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+func=swirl threads=1         1        1920x1080    swirl      10000000 764,5      858,3      806,4      788,6      1,00       1,00      
+func=swirl threads=2         2        1920x1080    swirl      10000000 524,0      578,4      552,3      554,4      1,42       0,71      
+func=swirl threads=4         4        1920x1080    swirl      10000000 369,6      421,2      391,6      387,0      2,04       0,51      
+func=swirl threads=8         8        1920x1080    swirl      10000000 367,1      417,7      386,5      378,8      2,08       0,26      
+func=swirl threads=16        16       1920x1080    swirl      10000000 377,0      420,7      405,0      414,3      1,90       0,12      
+
+Experiment #3: func=horseshoe (1920x1080, iter=10_000_000)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+func=horseshoe threads=1     1        1920x1080    horseshoe  10000000 712,7      781,0      762,9      779,6      1,00       1,00      
+func=horseshoe threads=2     2        1920x1080    horseshoe  10000000 510,4      605,2      552,0      535,4      1,46       0,73      
+func=horseshoe threads=4     4        1920x1080    horseshoe  10000000 353,5      428,7      375,8      365,1      2,14       0,53      
+func=horseshoe threads=8     8        1920x1080    horseshoe  10000000 364,2      391,3      378,7      376,8      2,07       0,26      
+func=horseshoe threads=16    16       1920x1080    horseshoe  10000000 359,6      435,8      390,4      389,6      2,00       0,13      
+
+Experiment #4: iter=10000 (1920x1080, spherical)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+iter=1000000 threads=1       1        1920x1080    spherical  1000000  115,1      161,8      140,7      139,3      1,00       1,00      
+iter=1000000 threads=2       2        1920x1080    spherical  1000000  70,3       95,9       82,5       84,9       1,64       0,82      
+iter=1000000 threads=4       4        1920x1080    spherical  1000000  57,8       66,8       62,7       63,6       2,19       0,55      
+iter=1000000 threads=8       8        1920x1080    spherical  1000000  66,5       98,1       81,5       83,0       1,68       0,21      
+iter=1000000 threads=16      16       1920x1080    spherical  1000000  96,9       123,4      109,7      111,0      1,26       0,08      
+
+
+Experiment #4: iter=50000 (1920x1080, spherical)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+iter=5000000 threads=1       1        1920x1080    spherical  5000000  484,3      586,7      526,6      518,2      1,00       1,00      
+iter=5000000 threads=2       2        1920x1080    spherical  5000000  274,2      342,4      310,9      319,1      1,62       0,81      
+iter=5000000 threads=4       4        1920x1080    spherical  5000000  193,2      239,1      209,7      208,8      2,48       0,62      
+iter=5000000 threads=8       8        1920x1080    spherical  5000000  220,0      249,5      238,3      242,7      2,13       0,27      
+iter=5000000 threads=16      16       1920x1080    spherical  5000000  338,1      425,0      369,9      369,8      1,40       0,09       
+
+
+Experiment #4: iter=100000 (1920x1080, spherical)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------   
+iter=10000000 threads=1      1        1920x1080    spherical  10000000 1112,5     1202,4     1144,8     1139,2     1,00       1,00      
+iter=10000000 threads=2      2        1920x1080    spherical  10000000 761,8      923,3      853,3      866,9      1,02       0,51      
+iter=10000000 threads=4      4        1920x1080    spherical  10000000 398,0      695,2      577,0      647,6      1,36       0,34      
+iter=10000000 threads=8      8        1920x1080    spherical  10000000 371,0      424,4      393,7      392,4      2,25       0,28      
+iter=10000000 threads=16     16       1920x1080    spherical  10000000 501,6      562,9      532,5      533,3      1,66       0,10      
+
+Experiment #4: iter=250000 (1920x1080, spherical)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------
+iter=25000000 threads=1      1        1920x1080    spherical  25000000 2283,2     2725,2     2458,1     2323,0     1,00       1,00      
+iter=25000000 threads=2      2        1920x1080    spherical  25000000 1366,0     1610,9     1467,4     1469,0     1,58       0,79      
+iter=25000000 threads=4      4        1920x1080    spherical  25000000 760,0      883,5      830,0      840,5      2,76       0,69      
+iter=25000000 threads=8      8        1920x1080    spherical  25000000 809,9      955,2      870,7      878,4      2,64       0,33      
+iter=25000000 threads=16     16       1920x1080    spherical  25000000 999,0      1406,8     1110,6     1045,9     2,22       0,14      
+
+Experiment #4: iter=500000 (1920x1080, spherical)
+label                        threads  size         func       iter     min_ms     max_ms     avg_ms     median_ms  speedup    efficiency
+----------------------------------------------------------------------------------------------------------------------------------------   
+iter=50000000 threads=1      1        1920x1080    spherical  50000000 4414,2     5449,3     4885,3     5024,7     1,00       1,00      
+iter=50000000 threads=2      2        1920x1080    spherical  50000000 2360,7     2457,7     2404,2     2403,4     2,09       1,05      
+iter=50000000 threads=4      4        1920x1080    spherical  50000000 1421,9     1541,2     1476,5     1452,9     3,46       0,86      
+iter=50000000 threads=8      8        1920x1080    spherical  50000000 1500,1     2185,3     1782,3     1695,5     2,96       0,37      
+iter=50000000 threads=16     16       1920x1080    spherical  50000000 1749,8     1966,8     1844,9     1791,2     2,81       0,18      
