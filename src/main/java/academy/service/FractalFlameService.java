@@ -92,10 +92,13 @@ public class FractalFlameService {
                 break;
             }
 
-            // Получаем рандомно аффинное преобразование и функцию в зависимости от её веса
+            // Выбираем функцию по весам
             int functionIndex = FunctionUtil.getRandomFunctionIndex(random, config.getFunctions());
-            AffineParameters affine = config.getAffineParameters().get(functionIndex);
             TransformationFunction function = config.getFunctions().get(functionIndex);
+
+            // Выбираем афинную карту
+            int affineIndex = random.nextInt(config.getAffineParameters().size());
+            AffineParameters affine = config.getAffineParameters().get(affineIndex);
 
             // Применяем аффинное преобразование
             double affineX = affine.a() * currentX + affine.b() * currentY + affine.c();
