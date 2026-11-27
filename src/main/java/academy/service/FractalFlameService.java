@@ -6,7 +6,6 @@ import academy.logger.ProgressLogger;
 import academy.models.FractalRenderState;
 import academy.models.config.AffineParameters;
 import academy.models.config.Configuration;
-import academy.models.config.TransformationFunction;
 import academy.models.image.Color;
 import academy.models.image.Image;
 import academy.models.image.Point;
@@ -22,43 +21,33 @@ public class FractalFlameService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FractalFlameService.class);
 
-    /** Максимальные и минимальные значения точек до нормализации, взятые со статьи. */
     private static final double MAX_X = 1.777;
-
     private static final double MIN_X = -1.777;
     private static final double MAX_Y = 1;
     private static final double MIN_Y = -1;
 
-    /**
-     * По статье приложенной в ТЗ, цвета RGB хранятся в виде десятичных чисел в диапазоне [0, 1]. Поэтому, чтобы можно
-     * было атомарно (AtomicInteger) хранить данные о цветах, будем умножать число на SCALE и отрезать значение после
-     * точки. Пример: 0.345687 * 10000 = 3456.87 -> 3456
-     */
     private static final int SCALE = 10000;
+    private static final int CHUNK_SIZE = 10_000;
 
     private final Configuration config;
     private final Color[] functionColors;
-    private final Random random;
+    private final Function[] cachedVariations;
 
     public FractalFlameService(Configuration config) {
         this.config = config;
-        this.random = new Random(config.getSeed().hashCode());
         this.functionColors = generateFunctionColors(config.getFunctions().size());
+        this.cachedVariations = cacheVariations(config);
     }
 
     public Image startAndGet() throws InterruptedException {
-        // Храним атомарные буферы для цветов и счётчика плотности в классе состояния рендера
         FractalRenderState state = new FractalRenderState(config.getWidth(), config.getHeight());
 
-        // Логирование процента генерации фрактального пламени
         Thread progressLogger = new Thread(new ProgressLogger(state, config.getIterationCount()));
         progressLogger.start();
 
-        // Обрабатываем все итерации в разных потоках и сохраняем информацию в state
         executeMultithreading(state);
         LOGGER.info("Потоки завершили генерацию фрактального пламени.");
 
-        // Строим изображение на основе state
         Image image = ImageCreator.createImageFromState(state, SCALE, config.getWidth(), config.getHeight());
         LOGGER.info("Изображение фрактального пламени успешно создано.");
 
@@ -67,109 +56,174 @@ public class FractalFlameService {
         return image;
     }
 
+    private static Function[] cacheVariations(Configuration config) {
+        Function[] variations = new Function[config.getFunctions().size()];
+        for (int i = 0; i < variations.length; i++) {
+            variations[i] = FunctionFactory.getFunctionByName(config.getFunctions().get(i).name());
+        }
+        return variations;
+    }
+
     private void executeMultithreading(FractalRenderState state) throws InterruptedException {
+        int totalPixels = config.getWidth() * config.getHeight();
+        int threadCount = config.getThreadCount();
+
+        List<int[]> localCounters = new ArrayList<>();
+        List<int[]> localReds = new ArrayList<>();
+        List<int[]> localGreens = new ArrayList<>();
+        List<int[]> localBlues = new ArrayList<>();
+
         List<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < config.getThreadCount(); i++) {
-            Thread thread = new Thread(() -> generateFractalFlame(state));
+
+        for (int i = 0; i < threadCount; i++) {
+            final int threadIndex = i;
+
+            final int[] counter = new int[totalPixels];
+            final int[] red = new int[totalPixels];
+            final int[] green = new int[totalPixels];
+            final int[] blue = new int[totalPixels];
+
+            localCounters.add(counter);
+            localReds.add(red);
+            localGreens.add(green);
+            localBlues.add(blue);
+
+            Thread thread = new Thread(() ->
+                generateFractalFlame(state, threadIndex, counter, red, green, blue));
             thread.start();
             threads.add(thread);
-            LOGGER.info("Запуск потока {} для генерация фрактального пламени.", thread.getName());
+            LOGGER.info("Запуск потока {} для генерации фрактального пламени.", thread.getName());
         }
 
         for (Thread thread : threads) {
             thread.join();
         }
+
+        for (int t = 0; t < threadCount; t++) {
+            int[] counter = localCounters.get(t);
+            int[] red = localReds.get(t);
+            int[] green = localGreens.get(t);
+            int[] blue = localBlues.get(t);
+
+            for (int idx = 0; idx < totalPixels; idx++) {
+                int localCount = counter[idx];
+                if (localCount > 0) {
+                    int globalCount = state.getCounterArray().get(idx);
+
+                    if (globalCount == 0) {
+                        state.getRedColorArray().set(idx, red[idx]);
+                        state.getGreenColorArray().set(idx, green[idx]);
+                        state.getBlueColorArray().set(idx, blue[idx]);
+                    } else {
+                        int oldRed = state.getRedColorArray().get(idx);
+                        int oldGreen = state.getGreenColorArray().get(idx);
+                        int oldBlue = state.getBlueColorArray().get(idx);
+
+                        int newRed = (oldRed * globalCount + red[idx] * localCount) / (globalCount + localCount);
+                        int newGreen = (oldGreen * globalCount + green[idx] * localCount) / (globalCount + localCount);
+                        int newBlue = (oldBlue * globalCount + blue[idx] * localCount) / (globalCount + localCount);
+
+                        state.getRedColorArray().set(idx, newRed);
+                        state.getGreenColorArray().set(idx, newGreen);
+                        state.getBlueColorArray().set(idx, newBlue);
+                    }
+                    state.getCounterArray().addAndGet(idx, localCount);
+                }
+            }
+        }
     }
 
-    private void generateFractalFlame(FractalRenderState state) {
-        // Инициализация начальной точки
+    private void generateFractalFlame(FractalRenderState state,
+                                      int threadIndex,
+                                      int[] localCounter,
+                                      int[] localRed,
+                                      int[] localGreen,
+                                      int[] localBlue) {
+        Random random = new Random(config.getSeed().hashCode() + threadIndex);
+
         double currentX = MIN_X + (MAX_X - MIN_X) * random.nextDouble();
         double currentY = MIN_Y + (MAX_Y - MIN_Y) * random.nextDouble();
 
         while (true) {
-            int currentIteration = state.getAtomicIterationCount().getAndIncrement();
-            if (currentIteration >= config.getIterationCount()) {
+            int start = state.getAtomicIterationCount().getAndAdd(CHUNK_SIZE);
+            if (start >= config.getIterationCount()) {
                 break;
             }
+            int end = Math.min(start + CHUNK_SIZE, config.getIterationCount());
 
-            // Получаем рандомно аффинное преобразование и функцию в зависимости от её веса
-            int functionIndex = FunctionUtil.getRandomFunctionIndex(random, config.getFunctions());
-            AffineParameters affine = config.getAffineParameters().get(functionIndex);
-            TransformationFunction function = config.getFunctions().get(functionIndex);
+            for (int currentIteration = start; currentIteration < end; currentIteration++) {
+                int functionIndex = FunctionUtil.getRandomFunctionIndex(random, config.getFunctions());
+                int affineIndex = random.nextInt(config.getAffineParameters().size());
+                AffineParameters affine = config.getAffineParameters().get(affineIndex);
 
-            // Применяем аффинное преобразование
-            double affineX = affine.a() * currentX + affine.b() * currentY + affine.c();
-            double affineY = affine.d() * currentX + affine.e() * currentY + affine.f();
+                double affineX = affine.a() * currentX + affine.b() * currentY + affine.c();
+                double affineY = affine.d() * currentX + affine.e() * currentY + affine.f();
 
-            // Применяем нелинейную вариацию функции
-            Function variation = FunctionFactory.getFunctionByName(function.name());
-            Point newPoint = variation.apply(new Point(affineX, affineY));
+                Function variation = cachedVariations[functionIndex];
+                Point newPoint = variation.apply(new Point(affineX, affineY));
 
-            // Обновляем текущую точку
-            currentX = newPoint.x();
-            currentY = newPoint.y();
+                currentX = newPoint.x();
+                currentY = newPoint.y();
 
-            if (currentIteration >= 20) {
-                applySymmetry(state, functionIndex, config.getWidth(), config.getHeight(), newPoint);
+                if (currentX < MIN_X || currentX > MAX_X || currentY < MIN_Y || currentY > MAX_Y) {
+                    continue;
+                }
+
+                if (currentIteration >= 20) {
+                    applySymmetry(functionIndex, config.getWidth(), config.getHeight(), newPoint,
+                        localCounter, localRed, localGreen, localBlue);
+                }
             }
         }
     }
 
-    private void applySymmetry(FractalRenderState state, int functionIndex, int width, int height, Point newPoint) {
+    private void applySymmetry(int functionIndex, int width, int height, Point newPoint,
+                               int[] localCounter, int[] localRed, int[] localGreen, int[] localBlue) {
         int symmetryLevel = config.getSymmetryLevel();
 
         if (symmetryLevel == 1) {
-            processIteration(state, functionIndex, width, height, newPoint);
+            processIteration(functionIndex, width, height, newPoint,
+                localCounter, localRed, localGreen, localBlue);
             return;
         }
 
-        // Для симметрии генерируем n-1 повернутых копий точки
         double angle = 360.0 / symmetryLevel;
-
         for (int i = 0; i < symmetryLevel; i++) {
             double rotationAngle = i * angle;
             Point rotatedPoint = PointUtil.rotatePoint(newPoint, rotationAngle);
-            processIteration(state, functionIndex, width, height, rotatedPoint);
+            processIteration(functionIndex, width, height, rotatedPoint,
+                localCounter, localRed, localGreen, localBlue);
         }
     }
 
-    private void processIteration(FractalRenderState state, int functionIndex, int width, int height, Point newPoint) {
-        // Переводим координаты точки из десятичных значений диапазона [0, 1] в целые значения разрешения изображения
+    private void processIteration(int functionIndex, int width, int height, Point newPoint,
+                                  int[] localCounter, int[] localRed, int[] localGreen, int[] localBlue) {
         Point normPoint = PointUtil.normalizePoint(newPoint, MAX_X, MIN_X, MAX_Y, MIN_Y, width, height);
         int normX = (int) normPoint.x();
         int normY = (int) normPoint.y();
 
-        if (normX < width && normY < height) {
-            // Считаем индекс для AtomicIntegerArray переменных
+        if (normX >= 0 && normX < width && normY >= 0 && normY < height) {
             int index = normY * width + normX;
 
             int red = (int) (functionColors[functionIndex].getRed() * SCALE);
             int green = (int) (functionColors[functionIndex].getGreen() * SCALE);
             int blue = (int) (functionColors[functionIndex].getBlue() * SCALE);
 
-            // Если в точку ещё не попадали, то устанавливаем изначально сгенерированный цвет
-            if (state.getCounterArray().get(index) == 0) {
-
-                state.getRedColorArray().set(index, red);
-                state.getGreenColorArray().set(index, green);
-                state.getBlueColorArray().set(index, blue);
+            if (localCounter[index] == 0) {
+                localRed[index] = red;
+                localGreen[index] = green;
+                localBlue[index] = blue;
+            } else {
+                localRed[index] = (localRed[index] + red) / 2;
+                localGreen[index] = (localGreen[index] + green) / 2;
+                localBlue[index] = (localBlue[index] + blue) / 2;
             }
-            // Если в точку уже попадали, то усредняем новый цвет с предыдущим
-            else {
-                int oldRed = state.getRedColorArray().get(index);
-                int oldGreen = state.getGreenColorArray().get(index);
-                int oldBlue = state.getBlueColorArray().get(index);
-
-                state.getRedColorArray().set(index, (oldRed + red) / 2);
-                state.getGreenColorArray().set(index, (oldGreen + green) / 2);
-                state.getBlueColorArray().set(index, (oldBlue + blue) / 2);
-            }
-
-            state.getCounterArray().incrementAndGet(index);
+            localCounter[index]++;
         }
     }
 
     private Color[] generateFunctionColors(int functionSize) {
+        Random random = new Random(config.getSeed().hashCode());
         Color[] colors = new Color[functionSize];
         for (int i = 0; i < functionSize; i++) {
             double red = random.nextDouble();
